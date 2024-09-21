@@ -161,3 +161,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 site/
+# Personal exclusions
+.DS_Store
+temp/
+NOTES.md

@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "causal-marl"
+dynamic = ["version"]
+authors = [{ name = "Priyam Dalmia", email = "dalmia.priyam@outlook.com" }]
+description = "Causal Multi-Agent Reinforcement Learning Algorithms with RLlib."
+readme = "README.md"  # or README.md
+dependencies = [
+    "ray[rllib]==2.35.0",
+    "torch",
+    "numpy"
+]
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
+[project.optional-dependencies]
+lints = [
+    "bandit[toml]==1.7.5",
+    "black==23.3.0",
+    "flake8-bugbear==23.5.9",
+    "flake8-docstrings",
+    "flake8-formatter_junit_xml",
+    "flake8",
+    "flake8-pyproject",
+    "isort"
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+]
+
+[project.urls]
+Documentation = "https://github.com/microsoft/python-package-template/tree/main#readme"
+Source = "https://github.com/priyamDalmia/causal-marl.git"
+
+[tool.black]
+line-length = 120
+fast = true
+
+[tool.flake8]
+max-line-length = 120
+select = "F,E,W,B,B901,B902,B903"
+exclude = [
+    ".eggs",
+    ".git",
+    ".tox",
+    ".venv",
+    "nssm",
+    "obj",
+    "out",
+    "packages",
+    "pywin32",
+    "tests",
+    "swagger_client"
+]
+ignore = [
+    "E722",
+    "B001",
+    "W503",
+    "E203"
+]

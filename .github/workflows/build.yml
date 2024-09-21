@@ -1,27 +1,96 @@
-name: Build and Test
-
-on:
+name: Build and Publish Python Package 
+on: # run on new tags only  
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'  
 
 jobs:
   build:
+    name: Build distribution
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v3
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Install pypa/build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Build a binary wheel and a source tarball
+      run: python3 -m build
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+  
+  github-release:
+    name: >-
+      Upload to GitHub Release
+    needs:
+    - build 
+    runs-on: ubuntu-latest
 
-      - name: Set up Python 3.x (any Python version for tox)
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
+    permissions:
+      contents: write  # IMPORTANT: mandatory for making GitHub Releases
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools twine tox
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    
+    - name: Get tag message
+      id: tag_message
+      run: |
+          git fetch --tags
+          TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          TAG_MESSAGE=$(git for-each-ref refs/tags/$TAG --format='%(contents)')
+          echo "tag_message=$TAG_MESSAGE" >> $GITHUB_ENV
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: >-
+        gh release create
+        '${{ github.ref_name }}'
+        --repo '${{ github.repository }}'
+        --notes $github.tag_message  
+    - name: Upload artifact signatures to GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      # Upload to GitHub Release using the `gh` CLI.
+      run: >-
+        gh release upload
+        '${{ github.ref_name }}' dist/**
+        --repo '${{ github.repository }}'
+
+  # publish-to-testpypi:
+  #   name: Publish Python 🐍 distribution 📦 to TestPyPI
+  #   needs:
+  #   - github-release 
+  #   runs-on: ubuntu-latest
+
+  #   environment:
+  #     name: testpypi
+  #     url: https://test.pypi.org/p/priyams_test_module
+
+  #   permissions: 
+  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+  #   steps:
+  #   - name: Download all the dists
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: python-package-distributions
+  #       path: dist/
+  #   - name: Publish distribution 📦 to TestPyPI
+  #     uses: pypa/gh-action-pypi-publish@release/v1
+  #     with:
+  #       repository-url: https://test.pypi.org/legacy/

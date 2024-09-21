@@ -1,0 +1,10 @@
+site_name: mypypackage
+# set material theme
+theme:
+  name: material  
+docs_dir: docs/docs
+site_dir: docs/site 
+markdown_extensions:
+  - toc:
+      permalink: true
+      separator: "_"
